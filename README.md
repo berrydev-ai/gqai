@@ -93,4 +93,4 @@ gqai makes it easy to turn your GraphQL backend into a model-ready tool layer �
 MIT — fork it, build on it, model all the things.
 
 ## 👋 Author
-Made with ☕️ + ❤️ by Stephen Spalding
+Made with ❤️ and 🤖vibes by Stephen Spalding 
