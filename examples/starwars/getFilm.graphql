@@ -1,0 +1,17 @@
+# Get a film by its ID
+query getFilm($filmID: ID!) {
+    film(filmID: $filmID) {
+        title
+        director
+        releaseDate
+        speciesConnection {
+            species {
+                name
+                classification
+                homeworld {
+                    name
+                }
+            }
+        }
+    }
+}
