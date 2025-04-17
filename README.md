@@ -1,13 +1,14 @@
 # gqai
 *graphql → ai*
 
-**gqai** is a lightweight proxy that exposes GraphQL operations as [Model Context Protocol (MCP)](https://platform.openai.com/docs/guides/function-calling) tools for AI models like ChatGPT.  
-It lets you define tools using regular GraphQL queries/mutations and run them locally or expose them over HTTP.
+**gqai** is a lightweight proxy that exposes GraphQL operations as
+[Model Context Protocol (MCP)](https://platform.openai.com/docs/guides/function-calling) tools for AI like
+Claude, Cursor, and ChatGPT.  
+Define tools using regular GraphQL queries/mutations against your GraphQL backend, and gqai automatically
+generates an MCP server for you.
 
 🔌 Powered by your GraphQL backend  
 ⚙️ Driven by `.graphqlrc.yml` + plain `.graphql` files  
-🧠 Model-ready inputs/outputs
-📍 Built in Go
 
 ---
 
