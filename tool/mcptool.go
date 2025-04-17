@@ -3,7 +3,7 @@ package tool
 type MCPTool struct {
 	Name        string                                  `json:"name"`
 	Description string                                  `json:"description"`
-	InputSchema map[string]interface{}                  `json:"input_schema"`
+	InputSchema map[string]interface{}                  `json:"inputSchema"`
 	Execute     func(input map[string]any) (any, error) `json:"-"`
 	Annotations struct {
 		Title           string `json:"title,omitempty"`
