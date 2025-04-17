@@ -49,10 +49,14 @@ func mcpInitialize(request JSONRPCRequest) JSONRPCResponse {
 			ProtocolVersion: protocolVersion,
 			ServerInfo: ServerInfo{
 				Name:    "gqai",
-				Version: "0.0.0",
+				Version: "0.0.4",
 			},
 			Capabilities: Capabilities{
-				Tools: map[string]interface{}{},
+				Tools: map[string]interface{}{
+					"roots": map[string]interface{}{
+						"listChanged": true,
+					},
+				},
 			},
 		},
 	}

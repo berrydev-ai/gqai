@@ -30,10 +30,35 @@ func ToolsCall(request JSONRPCRequest, config *graphql.Config) JSONRPCResponse {
 		return errorResponse(request, InternalError, fmt.Sprintf("Error executing tool %v: %v", toolName, err))
 	}
 
+	// Return the result wrapped in MCP response format
+	if resp == nil {
+		resp = map[string]any{}
+	}
+
+	// Check if the response is a valid JSON object
+	if _, ok := resp.(map[string]any); !ok {
+		return errorResponse(request, InternalError, fmt.Sprintf("Tool %v returned an invalid response", toolName))
+	}
+
+	// Convert the json response to a json-escaped string
+	resp_text, err := JSONEscapedString(resp)
+	if err != nil {
+		return errorResponse(request, InternalError, fmt.Sprintf("Error converting response to JSON string: %v", err))
+	}
+
+	result := CallToolResult{
+		Content: []ToolContent{
+			{
+				Type: "text",
+				Text: resp_text,
+			},
+		},
+	}
+
 	return JSONRPCResponse{
 		JSONRPC: "2.0",
 		ID:      request.ID,
-		Result:  resp,
+		Result:  result,
 		Error:   nil,
 	}
 }

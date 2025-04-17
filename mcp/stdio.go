@@ -30,7 +30,7 @@ func RunMCPStdIO(config *graphql.Config) {
 			break
 		}
 
-		log.Printf("Received request: %v", PrettyJSON(request))
+		//log.Printf("Received request: %v", PrettyJSON(request))
 
 		if request.JSONRPC != "2.0" {
 			var response = errorResponse(request, InvalidRequest, "Only JSON-RPC 2.0 is supported")
@@ -42,7 +42,7 @@ func RunMCPStdIO(config *graphql.Config) {
 
 		// Send response if it's not empty
 		if !(response == JSONRPCResponse{}) {
-			log.Printf("Sending response: %v", PrettyJSON(response))
+			//log.Printf("Sending response: %v", PrettyJSON(response))
 			sendResponse(encoder, response)
 		}
 	}

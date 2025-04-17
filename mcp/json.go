@@ -28,3 +28,19 @@ func PrettyJSON(v interface{}) string {
 
 	return prettyJSON.String()
 }
+
+// JSONEscapedString takes any value and returns a JSON-escaped string representation.
+func JSONEscapedString(v interface{}) (string, error) {
+	// First marshal the object to JSON
+	jsonBytes, err := json.Marshal(v)
+	if err != nil {
+		return "", err
+	}
+
+	// Create a buffer for JSON escaping
+	var escapedJSON bytes.Buffer
+	// Use json.HTMLEscape to escape the JSON string
+	json.HTMLEscape(&escapedJSON, jsonBytes)
+
+	return escapedJSON.String(), nil
+}
