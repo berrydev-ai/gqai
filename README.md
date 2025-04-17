@@ -36,9 +36,9 @@ documents: .
 
 This file tells gqai where to find your GraphQL schema and operations.
 
-*Note: The schema also tells gqai where to execute the operations. This must be a live server rather than a static schema file*
+*Note: The `schema` parameter tells gqai where to execute the operations. This must be a live server rather than a static schema file*
 
-2. Write a GraphQL operation
+2. Add a GraphQL operation
 
 `get_all_films.graphql`:
 ```graphql
@@ -65,6 +65,8 @@ query get_all_films {
     ]
   }
 ```
+
+That's it! Your AI model can now call the `get_all_films` tool.
 
 ## 🧪 CLI Testing
 ### Call a tool via CLI to test:
@@ -145,4 +147,4 @@ gqai makes it easy to turn your GraphQL backend into a model-ready tool layer �
 MIT — fork it, build on it, all the things.
 
 ## 👋 Author
-Made with ❤️ and 🤖vibes by Stephen Spalding && <your-name-here>
+Made with ❤️ and 🤖vibes by Stephen Spalding && `<your-name-here>`
