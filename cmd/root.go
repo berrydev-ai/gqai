@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/fotoetienne/gqai/mcp"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -22,8 +23,16 @@ var rootCmd = &cobra.Command{
 }
 
 var runCmd = &cobra.Command{
-	Use:   "run [toolName] [jsonInput]",
-	Short: "Run a GraphQL operation as a tool",
+	Use:   "run",
+	Short: "Run gqai as an MCP server in stdin/stdout mode",
+	Run: func(cmd *cobra.Command, args []string) {
+		mcp.RunMCPStdIO(config)
+	},
+}
+
+var toolsCallCmd = &cobra.Command{
+	Use:   "tools/call [toolName] [jsonInput]",
+	Short: "Call a GraphQL operation as a tool",
 	Args:  cobra.MinimumNArgs(1), // allow just the tool name
 	Run: func(cmd *cobra.Command, args []string) {
 		toolName := args[0]
@@ -37,20 +46,31 @@ var runCmd = &cobra.Command{
 			input = map[string]any{} // default to empty input
 		}
 
-		// Example: Load the config and use it to connect to GraphQL
-		resp, err := tool.Execute(config, toolName, input)
-		if err != nil {
-			fmt.Println("Execution error:", err)
+		var request = mcp.JSONRPCRequest{
+			JSONRPC: "2.0",
+			Method:  "tools/call",
+			Params: map[string]any{
+				"name":      toolName,
+				"arguments": input,
+			},
+		}
+
+		var resp = mcp.ToolsCall(request, config)
+
+		var error = resp.Error
+		if error != nil {
+			fmt.Printf("Error: %s\n", error.Message)
 			os.Exit(1)
 		}
 
-		out, _ := json.MarshalIndent(resp, "", "  ")
+		var result = resp.Result
+		out, _ := json.MarshalIndent(result, "", "  ")
 		fmt.Println(string(out))
 	},
 }
 
-var listCmd = &cobra.Command{
-	Use:   "list",
+var toolsListCmd = &cobra.Command{
+	Use:   "tools/list",
 	Short: "List available tools",
 	Run: func(cmd *cobra.Command, args []string) {
 		tools, err := tool.ToolsFromConfig(config)
@@ -124,7 +144,8 @@ func Execute() {
 	})
 
 	rootCmd.AddCommand(runCmd)
-	rootCmd.AddCommand(listCmd)
+	rootCmd.AddCommand(toolsCallCmd)
+	rootCmd.AddCommand(toolsListCmd)
 	rootCmd.AddCommand(describeCmd)
 	rootCmd.AddCommand(serveCmd)
 	rootCmd.Execute()

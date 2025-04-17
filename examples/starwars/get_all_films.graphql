@@ -1,0 +1,9 @@
+# Get all Star Wars films
+query get_all_films {
+    allFilms {
+        films {
+            id: episodeID
+            title
+        }
+    }
+}

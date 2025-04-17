@@ -1,2 +1,2 @@
-schema: "https://graphql.org/graphql/"
-documents: "."
+schema: https://graphql.org/graphql/
+documents: .

@@ -1,6 +1,6 @@
 # Get a film by its ID
-query getFilm($filmID: ID!) {
-    film(filmID: $filmID) {
+query get_film_by_id($id: ID!) {
+    film(filmID: $id) {
         title
         director
         releaseDate
@@ -11,6 +11,12 @@ query getFilm($filmID: ID!) {
                 homeworld {
                     name
                 }
+            }
+        }
+        characterConnection {
+            characters {
+                id
+                name
             }
         }
     }

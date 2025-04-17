@@ -1,6 +1,6 @@
 # Get a person by its ID
-query getPerson($personID: ID!) {
-    person(personID: $personID) {
+query get_person($id: ID!) {
+    person(personID: $id) {
         name
         birthYear
         eyeColor

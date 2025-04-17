@@ -3,10 +3,10 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 
 	"github.com/fotoetienne/gqai/tool"
-	"github.com/gorilla/mux"
 )
 
 func listToolsHandler(w http.ResponseWriter, r *http.Request) {
@@ -34,8 +34,15 @@ func callToolHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Load tool
+	tool, err := tool.LoadTool(config, payload.ToolName)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error loading tool: %v", err), http.StatusInternalServerError)
+		return
+	}
+
 	// Execute the tool
-	result, err := tool.Execute(config, payload.ToolName, payload.Input)
+	result, err := tool.Execute(payload.Input)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Execution error: %v", err), http.StatusInternalServerError)
 		return
@@ -49,9 +56,6 @@ func callToolHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func serveHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	toolName := vars["toolName"]
-
 	var payload struct {
 		Input map[string]any `json:"input"`
 	}
@@ -60,7 +64,15 @@ func serveHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := tool.Execute(config, toolName, payload.Input)
+	// Find the tool by name
+	toolName := mux.Vars(r)["name"]
+	tool, err := tool.LoadTool(config, toolName)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error loading tool: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	result, err := tool.Execute(payload.Input)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Execution error: %v", err), http.StatusInternalServerError)
 		return
