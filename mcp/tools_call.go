@@ -7,7 +7,7 @@ import (
 )
 
 // ToolsCall handles the 'tools/call' MCP command.
-func ToolsCall(request JSONRPCRequest, config *graphql.Config) JSONRPCResponse {
+func ToolsCall(request JSONRPCRequest, config *graphql.GraphQLConfig) JSONRPCResponse {
 	// Check if the tool name is provided in the request
 	if request.Params == nil {
 		return errorResponse(request, InvalidParams, "Params must include tool name")

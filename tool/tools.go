@@ -5,7 +5,7 @@ import (
 	"github.com/fotoetienne/gqai/graphql"
 )
 
-func ToolsFromConfig(config *graphql.Config) ([]*MCPTool, error) {
+func ToolsFromConfig(config *graphql.GraphQLConfig) ([]*MCPTool, error) {
 	ops, err := graphql.LoadOperations(config)
 	if err != nil {
 		return nil, err
@@ -18,7 +18,7 @@ func ToolsFromConfig(config *graphql.Config) ([]*MCPTool, error) {
 	return tools, nil
 }
 
-func LoadTool(config *graphql.Config, name string) (*MCPTool, error) {
+func LoadTool(config *graphql.GraphQLConfig, name string) (*MCPTool, error) {
 	ops, err := graphql.LoadOperations(config)
 	if err != nil {
 		return nil, err
@@ -32,15 +32,17 @@ func LoadTool(config *graphql.Config, name string) (*MCPTool, error) {
 	return nil, fmt.Errorf("tool %s not found", name)
 }
 
-func toolFromOperation(config *graphql.Config, op *graphql.Operation) *MCPTool {
+func toolFromOperation(config *graphql.GraphQLConfig, op *graphql.Operation) *MCPTool {
 	inputSchema, _ := ExtractInputSchema(op.Raw)
-	endpoint := config.Schema
+	endpoint := config.SingleProject.Schema[0].URL
+	headers := config.SingleProject.Schema[0].Headers
+	
 	return &MCPTool{
 		Name:        op.Name,
 		Description: "", // TODO: maybe use docstring/comments?
 		InputSchema: inputSchema,
 		Execute: func(input map[string]any) (any, error) {
-			return graphql.Execute(endpoint, input, op)
+			return graphql.ExecuteWithHeaders(endpoint, input, op, headers)
 		},
 		Annotations: struct {
 			Title           string `json:"title,omitempty"`

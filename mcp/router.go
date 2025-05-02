@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-func RouteMCPRequest(request JSONRPCRequest, config *graphql.Config) JSONRPCResponse {
+func RouteMCPRequest(request JSONRPCRequest, config *graphql.GraphQLConfig) JSONRPCResponse {
 	switch request.Method {
 
 	case initializeMethod:

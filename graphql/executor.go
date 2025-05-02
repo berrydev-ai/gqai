@@ -9,6 +9,10 @@ import (
 )
 
 func Execute(endpoint string, input map[string]any, op *Operation) (any, error) {
+	return ExecuteWithHeaders(endpoint, input, op, nil)
+}
+
+func ExecuteWithHeaders(endpoint string, input map[string]any, op *Operation, headers map[string]string) (any, error) {
 	reqBody := graphqlRequest{
 		Query:     op.Raw,
 		Variables: input,
@@ -18,7 +22,20 @@ func Execute(endpoint string, input map[string]any, op *Operation) (any, error) 
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	resp, err := http.Post(endpoint, "application/json", bytes.NewReader(jsonBody))
+	req, err := http.NewRequest("POST", endpoint, bytes.NewReader(jsonBody))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	
+	// Add any custom headers
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("GraphQL request failed: %w", err)
 	}
