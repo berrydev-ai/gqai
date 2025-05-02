@@ -2,8 +2,7 @@ package graphql
 
 import (
 	"fmt"
-	_ "os"
-	"strings"
+	"net/textproto"
 
 	"github.com/spf13/viper"
 )
@@ -11,46 +10,6 @@ import (
 type SchemaPointer struct {
 	URL     string            `yaml:"-"` // URL will be set programmatically
 	Headers map[string]string `yaml:"headers,omitempty"`
-}
-
-// UnmarshalYAML implements the yaml.Unmarshaler interface
-func (s *SchemaPointer) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	// Try to unmarshal as string directly (simple URL with no headers)
-	var stringURL string
-	if err := unmarshal(&stringURL); err == nil {
-		s.URL = stringURL
-		return nil
-	}
-
-	// Try to unmarshal as map with URL as key and headers as nested value
-	var schemaMap map[string]interface{}
-	if err := unmarshal(&schemaMap); err != nil {
-		return fmt.Errorf("schema must be a string URL or a map with URL as key")
-	}
-
-	// There should be only one key which is the URL
-	for url, value := range schemaMap {
-		s.URL = url
-		
-		// Check if the value is a map that contains headers
-		if valueMap, ok := value.(map[interface{}]interface{}); ok {
-			if headersMap, found := valueMap["headers"]; found {
-				if headers, ok := headersMap.(map[interface{}]interface{}); ok {
-					s.Headers = make(map[string]string)
-					for k, v := range headers {
-						if keyStr, ok := k.(string); ok {
-							if valStr, ok := v.(string); ok {
-								s.Headers[keyStr] = valStr
-							}
-						}
-					}
-				}
-				break // Only process the first URL
-			}
-		}
-	}
-	
-	return nil
 }
 
 type GraphQLProject struct {
@@ -70,6 +29,13 @@ type GraphQLConfig struct {
 	MultiProjects *GraphQLProjects `yaml:",inline"`
 }
 
+// normalizeHeader returns the canonical format of the header key
+// This uses the standard library's textproto.CanonicalMIMEHeaderKey
+// which handles proper capitalization of HTTP headers
+func normalizeHeader(key string) string {
+	return textproto.CanonicalMIMEHeaderKey(key)
+}
+
 func LoadGraphQLConfig(path string) (*GraphQLConfig, error) {
 	viper.SetConfigFile(path)
 	viper.SetConfigType("yaml")
@@ -83,86 +49,104 @@ func LoadGraphQLConfig(path string) (*GraphQLConfig, error) {
 		SingleProject: &GraphQLProject{},
 	}
 
-	// Handle the schema property (can be a string or an array)
-	schema := viper.Get("schema")
-	if schema != nil {
-		// Case 1: schema is a simple string URL
-		if urlStr, ok := schema.(string); ok {
-			config.SingleProject.Schema = append(config.SingleProject.Schema, SchemaPointer{
-				URL: urlStr,
-			})
-		}
-		
-		// Case 2: schema is an array
-		if schemaArr, ok := schema.([]interface{}); ok {
-			for _, item := range schemaArr {
-				// Case 2.1: array item is a simple string URL
-				if urlStr, ok := item.(string); ok {
-					config.SingleProject.Schema = append(config.SingleProject.Schema, SchemaPointer{
-						URL: urlStr,
-					})
-					continue
-				}
-				
-				// Case 2.2: array item is a map with URL as key (map[string]interface{})
-				if urlMap, ok := item.(map[string]interface{}); ok {
-					for url, value := range urlMap {
-						schemaPtr := SchemaPointer{URL: url}
-						
-						// Extract headers if they exist
-						if valueMap, ok := value.(map[string]interface{}); ok {
-							if headersMap, ok := valueMap["headers"].(map[string]interface{}); ok {
-								schemaPtr.Headers = make(map[string]string)
-								for key, val := range headersMap {
-									if valStr, ok := val.(string); ok {
-											// Restore original case for common header names
-										// This is necessary because Viper normalizes keys to lowercase
-										headerKey := key
-										switch strings.ToLower(key) {
-										case "authorization":
-											headerKey = "Authorization"
-										case "content-type":
-											headerKey = "Content-Type"
-										case "accept":
-											headerKey = "Accept"
-										case "user-agent":
-											headerKey = "User-Agent"
-										case "custom-header":
-											headerKey = "Custom-Header"
-										}
-										
-										// Store header with restored case
-										schemaPtr.Headers[headerKey] = valStr
-									}
-								}
-							}
-						}
-						
-						config.SingleProject.Schema = append(config.SingleProject.Schema, schemaPtr)
-						break // Only process the first URL in the map
-					}
-				}
-			}
-		}
+	// Parse schema configuration
+	if err := parseSchema(config); err != nil {
+		return nil, err
 	}
 
-	// Handle documents (similar approach)
-	documents := viper.Get("documents")
-	if documents != nil {
-		// Case 1: documents is a simple string
-		if docStr, ok := documents.(string); ok {
-			config.SingleProject.Documents = append(config.SingleProject.Documents, docStr)
-		}
-		
-		// Case 2: documents is an array
-		if docArr, ok := documents.([]interface{}); ok {
-			for _, item := range docArr {
-				if docStr, ok := item.(string); ok {
-					config.SingleProject.Documents = append(config.SingleProject.Documents, docStr)
-				}
-			}
-		}
+	// Parse documents configuration
+	if err := parseDocuments(config); err != nil {
+		return nil, err
 	}
 
 	return config, nil
+}
+
+// parseSchema handles the schema configuration which can be either a string or an array
+func parseSchema(config *GraphQLConfig) error {
+	schema := viper.Get("schema")
+	if schema == nil {
+		return nil
+	}
+
+	// Case 1: schema is a simple string URL
+	if urlStr, ok := schema.(string); ok {
+		config.SingleProject.Schema = append(config.SingleProject.Schema, SchemaPointer{
+			URL: urlStr,
+		})
+		return nil
+	}
+
+	// Case 2: schema is an array
+	schemaArr, ok := schema.([]interface{})
+	if !ok {
+		return fmt.Errorf("schema must be a string URL or an array")
+	}
+
+	for _, item := range schemaArr {
+		// Case 2.1: array item is a simple string URL
+		if urlStr, ok := item.(string); ok {
+			config.SingleProject.Schema = append(config.SingleProject.Schema, SchemaPointer{
+				URL: urlStr,
+			})
+			continue
+		}
+
+		// Case 2.2: array item is a map with URL as key
+		urlMap, ok := item.(map[string]interface{})
+		if !ok {
+			continue // Skip invalid items
+		}
+
+		for url, value := range urlMap {
+			schemaPtr := SchemaPointer{URL: url}
+
+			// Extract headers if they exist
+			if valueMap, ok := value.(map[string]interface{}); ok {
+				if headersMap, ok := valueMap["headers"].(map[string]interface{}); ok {
+					schemaPtr.Headers = make(map[string]string)
+					for key, val := range headersMap {
+						if valStr, ok := val.(string); ok {
+							// Use standard header normalization
+							normalKey := normalizeHeader(key)
+							schemaPtr.Headers[normalKey] = valStr
+						}
+					}
+				}
+			}
+
+			config.SingleProject.Schema = append(config.SingleProject.Schema, schemaPtr)
+			break // Only process the first URL in the map
+		}
+	}
+
+	return nil
+}
+
+// parseDocuments handles the documents configuration which can be either a string or an array
+func parseDocuments(config *GraphQLConfig) error {
+	documents := viper.Get("documents")
+	if documents == nil {
+		return nil
+	}
+
+	// Case 1: documents is a simple string
+	if docStr, ok := documents.(string); ok {
+		config.SingleProject.Documents = append(config.SingleProject.Documents, docStr)
+		return nil
+	}
+
+	// Case 2: documents is an array
+	docArr, ok := documents.([]interface{})
+	if !ok {
+		return fmt.Errorf("documents must be a string path or an array")
+	}
+
+	for _, item := range docArr {
+		if docStr, ok := item.(string); ok {
+			config.SingleProject.Documents = append(config.SingleProject.Documents, docStr)
+		}
+	}
+
+	return nil
 }
