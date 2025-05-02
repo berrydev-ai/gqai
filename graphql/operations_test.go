@@ -14,7 +14,7 @@ func TestLoadOperations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temporary operations directory: %v", err)
 	}
-	
+
 	// Create a sample GraphQL operation file
 	queryContent := `
 query GetFilm($id: ID!) {
@@ -30,36 +30,36 @@ query GetFilm($id: ID!) {
 	if err != nil {
 		t.Fatalf("Failed to create sample GraphQL file: %v", err)
 	}
-	
+
 	// Create a config that points to our temporary directory
 	config := &GraphQLConfig{
 		SingleProject: &GraphQLProject{
 			Documents: []string{operationsDir},
 		},
 	}
-	
+
 	// Load operations
 	operations, err := LoadOperations(config)
 	if err != nil {
 		t.Fatalf("LoadOperations returned an error: %v", err)
 	}
-	
+
 	// Verify operations were loaded correctly
 	if len(operations) != 1 {
 		t.Fatalf("Expected 1 operation, got %d", len(operations))
 	}
-	
+
 	// Check for the GetFilm operation
 	operation, exists := operations["GetFilm"]
 	if !exists {
 		t.Fatal("GetFilm operation not found")
 	}
-	
+
 	// Verify the operation properties
 	if operation.Name != "GetFilm" {
 		t.Fatalf("Expected operation name to be GetFilm, got %s", operation.Name)
 	}
-	
+
 	if operation.OperationType != "query" {
 		t.Fatalf("Expected operation type to be query, got %s", operation.OperationType)
 	}

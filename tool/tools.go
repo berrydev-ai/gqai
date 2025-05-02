@@ -36,13 +36,13 @@ func toolFromOperation(config *graphql.GraphQLConfig, op *graphql.Operation) *MC
 	inputSchema, _ := ExtractInputSchema(op.Raw)
 	endpoint := config.SingleProject.Schema[0].URL
 	headers := config.SingleProject.Schema[0].Headers
-	
+
 	return &MCPTool{
 		Name:        op.Name,
 		Description: "", // TODO: maybe use docstring/comments?
 		InputSchema: inputSchema,
 		Execute: func(input map[string]any) (any, error) {
-			return graphql.ExecuteWithHeaders(endpoint, input, op, headers)
+			return graphql.Execute(endpoint, input, op, headers)
 		},
 		Annotations: struct {
 			Title           string `json:"title,omitempty"`

@@ -8,11 +8,7 @@ import (
 	"net/http"
 )
 
-func Execute(endpoint string, input map[string]any, op *Operation) (any, error) {
-	return ExecuteWithHeaders(endpoint, input, op, nil)
-}
-
-func ExecuteWithHeaders(endpoint string, input map[string]any, op *Operation, headers map[string]string) (any, error) {
+func Execute(endpoint string, input map[string]any, op *Operation, headers map[string]string) (any, error) {
 	reqBody := graphqlRequest{
 		Query:     op.Raw,
 		Variables: input,
@@ -28,7 +24,7 @@ func ExecuteWithHeaders(endpoint string, input map[string]any, op *Operation, he
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	// Add any custom headers
 	for key, value := range headers {
 		req.Header.Set(key, value)

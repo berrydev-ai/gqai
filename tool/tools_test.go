@@ -16,7 +16,7 @@ func TestToolsFromConfig(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temporary operations directory: %v", err)
 	}
-	
+
 	// Create a sample GraphQL query file
 	queryContent := `
 query GetFilm($id: ID!) {
@@ -32,7 +32,7 @@ query GetFilm($id: ID!) {
 	if err != nil {
 		t.Fatalf("Failed to create sample GraphQL file: %v", err)
 	}
-	
+
 	// Create a sample GraphQL mutation file
 	mutationContent := `
 mutation AddFilm($film: FilmInput!) {
@@ -47,7 +47,7 @@ mutation AddFilm($film: FilmInput!) {
 	if err != nil {
 		t.Fatalf("Failed to create sample GraphQL file: %v", err)
 	}
-	
+
 	// Create a config that points to our temporary directory
 	config := &graphql.GraphQLConfig{
 		SingleProject: &graphql.GraphQLProject{
@@ -57,18 +57,18 @@ mutation AddFilm($film: FilmInput!) {
 			Documents: []string{operationsDir},
 		},
 	}
-	
+
 	// Get tools from config
 	tools, err := ToolsFromConfig(config)
 	if err != nil {
 		t.Fatalf("ToolsFromConfig returned an error: %v", err)
 	}
-	
+
 	// Verify tools were created correctly
 	if len(tools) != 2 {
 		t.Fatalf("Expected 2 tools, got %d", len(tools))
 	}
-	
+
 	// Check for tools by name
 	var getFilmTool, addFilmTool *MCPTool
 	for _, tool := range tools {
@@ -78,7 +78,7 @@ mutation AddFilm($film: FilmInput!) {
 			addFilmTool = tool
 		}
 	}
-	
+
 	// Verify GetFilm tool
 	if getFilmTool == nil {
 		t.Fatal("GetFilm tool not found")
@@ -89,7 +89,7 @@ mutation AddFilm($film: FilmInput!) {
 	if getFilmTool.Annotations.DestructiveHint {
 		t.Error("Expected GetFilm tool not to be destructive")
 	}
-	
+
 	// Verify AddFilm tool
 	if addFilmTool == nil {
 		t.Fatal("AddFilm tool not found")
@@ -110,7 +110,7 @@ func TestLoadTool(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temporary operations directory: %v", err)
 	}
-	
+
 	// Create a sample GraphQL query file
 	queryContent := `
 query GetFilm($id: ID!) {
@@ -126,7 +126,7 @@ query GetFilm($id: ID!) {
 	if err != nil {
 		t.Fatalf("Failed to create sample GraphQL file: %v", err)
 	}
-	
+
 	// Create a config that points to our temporary directory
 	config := &graphql.GraphQLConfig{
 		SingleProject: &graphql.GraphQLProject{
@@ -136,13 +136,13 @@ query GetFilm($id: ID!) {
 			Documents: []string{operationsDir},
 		},
 	}
-	
+
 	// Load a specific tool
 	tool, err := LoadTool(config, "GetFilm")
 	if err != nil {
 		t.Fatalf("LoadTool returned an error: %v", err)
 	}
-	
+
 	// Verify tool was loaded correctly
 	if tool == nil {
 		t.Fatal("LoadTool returned nil tool")
@@ -150,7 +150,7 @@ query GetFilm($id: ID!) {
 	if tool.Name != "GetFilm" {
 		t.Fatalf("Expected tool name to be GetFilm, got %s", tool.Name)
 	}
-	
+
 	// Test loading a non-existent tool
 	_, err = LoadTool(config, "NonExistentTool")
 	if err == nil {
