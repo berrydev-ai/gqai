@@ -8,7 +8,7 @@ import (
 )
 
 // RunMCPStdIO starts the MCP server in stdin/stdout mode.
-func RunMCPStdIO(config *graphql.Config) {
+func RunMCPStdIO(config *graphql.GraphQLConfig) {
 	// Read from stdin and write to stdout
 	// This is a blocking call, so it will not return until the program exits
 

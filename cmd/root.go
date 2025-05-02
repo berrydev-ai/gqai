@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var config *graphql.Config
+var config *graphql.GraphQLConfig
 var configPath string
 
 var rootCmd = &cobra.Command{
@@ -137,7 +137,7 @@ func Execute() {
 
 	cobra.OnInitialize(func() {
 		var err error
-		config, err = graphql.LoadConfigAt(configPath)
+		config, err = graphql.LoadGraphQLConfig(configPath)
 		if err != nil {
 			log.Fatalf("Error loading config: %v", err)
 		}

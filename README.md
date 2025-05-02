@@ -69,8 +69,55 @@ query get_all_films {
 
 That's it! Your AI model can now call the `get_all_films` tool.
 
-## 🧪 CLI Testing
-### Call a tool via CLI to test:
+## Usage
+### Configuration
+#### GraphQL Config
+The [graphql config](https://the-guild.dev/graphql/config/docs/user/schema)
+file is a YAML file that defines the GraphQL endpoint and the operations
+you want to expose as tools. It should be named `.graphqlrc.yml` and placed in the root of your project.
+
+```yaml
+schema: https://graphql.org/graphql/
+documents: operations
+```
+
+The `schema` field specifies the GraphQL endpoint, and the `documents` field specifies the directory where your GraphQL operations are located.
+
+In this example, the `operations` directory contains all the GraphQL operations you want to expose as tools.
+Operations are defined in `.graphql` files, and gqai will automatically discover them.
+
+##### Headers
+You can also specify headers to be sent with each request to the GraphQL endpoint. This is useful for authentication or other custom headers.
+
+```yaml
+schema:
+  - https://graphql.org/graphql/:
+      headers:
+        Authorization: Bearer YOUR_TOKEN
+        X-Custom-Header: CustomValue
+documents: .
+```
+
+#### MCP Configuration
+##### Claude Desktop
+To use gqai with Claude Desktop, you need to add the following configuration to your `mcp.json` file:
+
+```json
+{
+  "gqai": {
+    "command": "gqai",
+    "args": [
+      "run",
+      "--config",
+      ".graphqlrc.yml"
+    ]
+  }
+}
+```
+
+
+### 🧪 CLI Testing
+#### Call a tool via CLI to test:
 
 ```bash
 gqai tools/call get_all_films
@@ -101,7 +148,7 @@ This will execute the `get_all_films` tool and print the result.
   }
 }
 ```
-### Call a tool with arguments:
+#### Call a tool with arguments:
 
 Create a GraphQL operation that takes arguments, and these will be the tool inputs:
 
@@ -138,14 +185,44 @@ This will execute the `get_film_by_id` tool with the provided arguments.
 }
 ```
 
-## 📦 Tool Metadata
-Auto-generated tool specs for each operation, so you can plug into any LLM that supports tool use.
+## Development
 
-## 🤖 Why gqai?
+### Prerequisites
+- Go 1.20+
+
+### Build
+```bash
+go build -o gqai main.go
+```
+
+### Test
+```bash
+go test ./...
+```
+
+### Format
+```bash
+go fmt ./...
+```
+
+### Run MCP server
+```bash
+./gqai run --config .graphqlrc.yml
+```
+
+### Run CLI
+```bash
+./gqai tools/call get_all_films
+```
+
+
+## About GQAI
+
+### 🤖 Why gqai?
 gqai makes it easy to turn your GraphQL backend into a model-ready tool layer — no code, no extra infra. Just define your operations and let AI call them.
 
-## 📜 License
+### 📜 License
 MIT — fork it, build on it, all the things.
 
-## 👋 Author
+### 👋 Author
 Made with ❤️ and 🤖vibes by Stephen Spalding && `<your-name-here>`

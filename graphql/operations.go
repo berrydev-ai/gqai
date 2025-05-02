@@ -17,10 +17,10 @@ type Operation struct {
 	OperationType string
 }
 
-func LoadOperations(config *Config) (map[string]*Operation, error) {
+func LoadOperations(config *GraphQLConfig) (map[string]*Operation, error) {
 	opMap := make(map[string]*Operation)
 
-	err := filepath.WalkDir(config.Documents, func(path string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir(config.SingleProject.Documents[0], func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() || filepath.Ext(path) != ".graphql" {
 			return nil
 		}
