@@ -270,3 +270,122 @@ documents: ./documents/*.graphql
 			config.SingleProject.Documents[0])
 	}
 }
+
+func TestLoadGraphQLConfigWithEnvVarHeader(t *testing.T) {
+	// Set an environment variable for the test
+	os.Setenv("TEST_AUTH_TOKEN", "env-token-value")
+	t.Cleanup(func() { os.Unsetenv("TEST_AUTH_TOKEN") })
+
+	tempDir := t.TempDir()
+	configPath := filepath.Join(tempDir, "graphqlconfig.yml")
+
+	configContent := `
+schema:
+  - http://localhost:4000/graphql:
+      headers:
+        Authorization: Bearer ${TEST_AUTH_TOKEN}
+documents:
+  - operations/**/*.graphql
+`
+	err := os.WriteFile(configPath, []byte(configContent), 0644)
+	if err != nil {
+		t.Fatalf("Failed to create temporary config file: %v", err)
+	}
+
+	config, err := LoadGraphQLConfig(configPath)
+	if err != nil {
+		t.Fatalf("LoadGraphQLConfig returned an error: %v", err)
+	}
+
+	headers := config.SingleProject.Schema[0].Headers
+	if headers["Authorization"] != "Bearer env-token-value" {
+		t.Fatalf("Expected Authorization header to be 'Bearer env-token-value', got '%s'", headers["Authorization"])
+	}
+}
+
+func TestLoadGraphQLConfigWithEnvVarHeaderDefault(t *testing.T) {
+	// Unset the env var to test default value
+	os.Unsetenv("TEST_AUTH_TOKEN_DEFAULT")
+	t.Cleanup(func() { os.Unsetenv("TEST_AUTH_TOKEN_DEFAULT") })
+
+	tempDir := t.TempDir()
+	configPath := filepath.Join(tempDir, "graphqlconfig.yml")
+
+	configContent := `
+schema:
+  - http://localhost:4000/graphql:
+      headers:
+        Authorization: Bearer ${TEST_AUTH_TOKEN_DEFAULT:-default-token}
+documents:
+  - operations/**/*.graphql
+`
+	err := os.WriteFile(configPath, []byte(configContent), 0644)
+	if err != nil {
+		t.Fatalf("Failed to create temporary config file: %v", err)
+	}
+
+	config, err := LoadGraphQLConfig(configPath)
+	if err != nil {
+		t.Fatalf("LoadGraphQLConfig returned an error: %v", err)
+	}
+
+	headers := config.SingleProject.Schema[0].Headers
+	if headers["Authorization"] != "Bearer default-token" {
+		t.Fatalf("Expected Authorization header to be 'Bearer default-token', got '%s'", headers["Authorization"])
+	}
+}
+
+func TestLoadGraphQLConfigWithEnvVarsEverywhere(t *testing.T) {
+	os.Setenv("TEST_SCHEMA_URL", "http://localhost:4000/graphql")
+	os.Setenv("TEST_DOC_PATH", "operations/**/*.graphql")
+	os.Setenv("TEST_INCLUDE", "operations/include.graphql")
+	os.Setenv("TEST_EXCLUDE", "operations/exclude.graphql")
+	os.Setenv("TEST_HEADER", "header-value")
+	t.Cleanup(func() {
+		os.Unsetenv("TEST_SCHEMA_URL")
+		os.Unsetenv("TEST_DOC_PATH")
+		os.Unsetenv("TEST_INCLUDE")
+		os.Unsetenv("TEST_EXCLUDE")
+		os.Unsetenv("TEST_HEADER")
+	})
+
+	tempDir := t.TempDir()
+	configPath := filepath.Join(tempDir, "graphqlconfig.yml")
+
+	configContent := `
+schema:
+  - ${TEST_SCHEMA_URL}:
+      headers:
+        X-Test-Header: ${TEST_HEADER}
+documents:
+  - ${TEST_DOC_PATH}
+include: ${TEST_INCLUDE}
+exclude: ${TEST_EXCLUDE}
+`
+	err := os.WriteFile(configPath, []byte(configContent), 0644)
+	if err != nil {
+		t.Fatalf("Failed to create temporary config file: %v", err)
+	}
+
+	config, err := LoadGraphQLConfig(configPath)
+	if err != nil {
+		t.Fatalf("LoadGraphQLConfig returned an error: %v", err)
+	}
+
+	if config.SingleProject.Schema[0].URL != "http://localhost:4000/graphql" {
+		t.Fatalf("Expected schema URL to be expanded, got %s", config.SingleProject.Schema[0].URL)
+	}
+	if config.SingleProject.Documents[0] != "operations/**/*.graphql" {
+		t.Fatalf("Expected document path to be expanded, got %s", config.SingleProject.Documents[0])
+	}
+	if config.SingleProject.Include[0] != "operations/include.graphql" {
+		t.Fatalf("Expected include to be expanded, got %s", config.SingleProject.Include[0])
+	}
+	if config.SingleProject.Exclude[0] != "operations/exclude.graphql" {
+		t.Fatalf("Expected exclude to be expanded, got %s", config.SingleProject.Exclude[0])
+	}
+	headers := config.SingleProject.Schema[0].Headers
+	if headers["X-Test-Header"] != "header-value" {
+		t.Fatalf("Expected header to be expanded, got %s", headers["X-Test-Header"])
+	}
+}

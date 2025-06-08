@@ -98,6 +98,47 @@ schema:
 documents: .
 ```
 
+##### Using Environment Variables in Headers
+You can reference environment variables in header values using the `${VARNAME}` syntax. For example:
+
+```yaml
+schema:
+  - https://graphql.org/graphql/:
+      headers:
+        Authorization: Bearer ${MY_AUTH_TOKEN}
+documents: .
+```
+
+You can also provide a default value using the `${VARNAME:-default}` syntax:
+
+```yaml
+schema:
+  - https://graphql.org/graphql/:
+      headers:
+        Authorization: Bearer ${MY_AUTH_TOKEN:-default-token}
+documents: .
+```
+
+When gqai loads the config, it will substitute `${MY_AUTH_TOKEN}` with the value of the `MY_AUTH_TOKEN` environment variable, or use `default-token` if the variable is not set. This allows you to keep secrets out of your config files.
+
+If the environment variable is not set and no default is provided, the value will be left as-is.
+
+##### Using Environment Variables in Config
+You can use environment variables in any part of your `.graphqlrc.yml` config: schema URLs, document paths, include/exclude globs, and header values. Use `${VARNAME}` or `${VARNAME:-default}` syntax:
+
+```yaml
+schema:
+  - ${MY_SCHEMA_URL:-https://default/graphql}:
+      headers:
+        Authorization: Bearer ${MY_AUTH_TOKEN}
+documents:
+  - ${MY_DOCS_PATH:-operations/**/*.graphql}
+include: ${MY_INCLUDE:-operations/include.graphql}
+exclude: ${MY_EXCLUDE:-operations/exclude.graphql}
+```
+
+gqai will substitute these with the value of the environment variable, or use the default if not set. This keeps secrets and environment-specific paths out of your config files.
+
 #### MCP Configuration
 ##### Claude Desktop
 To use gqai with Claude Desktop, you need to add the following configuration to your `mcp.json` file:
