@@ -64,3 +64,72 @@ func TestExecuteWithHeaders(t *testing.T) {
 		t.Fatalf("Expected result.data.test to be 'success', got %v", data["test"])
 	}
 }
+
+func TestExecuteWithInvalidJSON(t *testing.T) {
+	// Create a test server that returns invalid JSON
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, `invalid json`)
+	}))
+	defer server.Close()
+
+	// Create a test operation
+	op := &Operation{
+		Name:          "TestQuery",
+		Raw:           "query TestQuery { test }",
+		OperationType: "query",
+	}
+
+	// Execute the request
+	result, err := Execute(server.URL, nil, op, nil)
+	if err == nil {
+		t.Fatalf("Expected error for invalid JSON response, got nil")
+	}
+	if result != nil {
+		t.Fatalf("Expected nil result for invalid JSON response, got %v", result)
+	}
+}
+
+func TestExecuteWithNonOKStatus(t *testing.T) {
+	// Create a test server that returns a 500 error
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, `{"error": "internal server error"}`)
+	}))
+	defer server.Close()
+
+	// Create a test operation
+	op := &Operation{
+		Name:          "TestQuery",
+		Raw:           "query TestQuery { test }",
+		OperationType: "query",
+	}
+
+	// Execute the request
+	result, err := Execute(server.URL, nil, op, nil)
+	if err == nil {
+		t.Fatalf("Expected error for non-OK status, got nil")
+	}
+	if result != nil {
+		t.Fatalf("Expected nil result for non-OK status, got %v", result)
+	}
+}
+
+func TestExecuteWithNetworkError(t *testing.T) {
+	// Use an invalid URL to simulate network error
+	op := &Operation{
+		Name:          "TestQuery",
+		Raw:           "query TestQuery { test }",
+		OperationType: "query",
+	}
+
+	// Execute the request with invalid URL
+	result, err := Execute("http://invalid.url.that.does.not.exist", nil, op, nil)
+	if err == nil {
+		t.Fatalf("Expected error for network failure, got nil")
+	}
+	if result != nil {
+		t.Fatalf("Expected nil result for network failure, got %v", result)
+	}
+}

@@ -164,10 +164,8 @@ func (s *StreamableHTTPServer) handleStreamableHTTPDelete(w http.ResponseWriter,
 }
 
 // RunMCPStreamableHTTP starts the MCP server with streamable HTTP transport
-func RunMCPStreamableHTTP(config *graphql.GraphQLConfig, addr string) {
-	server := NewStreamableHTTPServer(config)
-
-	http.HandleFunc("/mcp", server.HandleStreamableHTTP)
+func (s *StreamableHTTPServer) RunMCPStreamableHTTP(addr string) {
+	http.HandleFunc("/mcp", s.HandleStreamableHTTP)
 
 	log.Printf("Starting MCP Streamable HTTP server on %s", addr)
 	log.Printf("Streamable HTTP endpoint: http://%s/mcp", addr)
