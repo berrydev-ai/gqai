@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 
-	"github.com/fotoetienne/gqai/tool"
+	"github.com/berrydev-ai/gqai/tool"
 )
 
 func listToolsHandler(w http.ResponseWriter, r *http.Request) {

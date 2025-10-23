@@ -37,7 +37,11 @@ dist/
 *.so
 *.dylib
 
+# Binary build
+gqai
+
 # Kilo Code rules
+.kilocode/rules/using-references.md
 .kilocode/rules/memory-bank/context.md
 !.kilocode/rules/memory-bank/architecture.md
 !.kilocode/rules/memory-bank/brief.md

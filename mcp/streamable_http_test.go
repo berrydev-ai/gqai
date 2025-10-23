@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fotoetienne/gqai/graphql"
+	"github.com/berrydev-ai/gqai/graphql"
 )
 
 func TestNewStreamableHTTPServer(t *testing.T) {

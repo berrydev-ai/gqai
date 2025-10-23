@@ -2,8 +2,8 @@ package mcp
 
 import (
 	"fmt"
-	"github.com/fotoetienne/gqai/graphql"
-	"github.com/fotoetienne/gqai/tool"
+	"github.com/berrydev-ai/gqai/graphql"
+	"github.com/berrydev-ai/gqai/tool"
 )
 
 // ToolsList handles the 'tools/list' MCP command.

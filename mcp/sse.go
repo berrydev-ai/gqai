@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/fotoetienne/gqai/graphql"
+	"github.com/berrydev-ai/gqai/graphql"
 )
 
 // SSEServer represents an SSE server instance

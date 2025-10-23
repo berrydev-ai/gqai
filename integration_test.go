@@ -10,9 +10,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fotoetienne/gqai/graphql"
-	"github.com/fotoetienne/gqai/mcp"
-	"github.com/fotoetienne/gqai/tool"
+	"github.com/berrydev-ai/gqai/graphql"
+	"github.com/berrydev-ai/gqai/mcp"
+	"github.com/berrydev-ai/gqai/tool"
 )
 
 func TestFullIntegration(t *testing.T) {

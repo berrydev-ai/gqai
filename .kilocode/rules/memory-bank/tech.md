@@ -33,7 +33,7 @@
 - **Gorilla Mux**: HTTP request routing
   - Flexible routing patterns
   - Middleware support
-  - Session management
+  - Session management for streamable HTTP
 
 ## Development Tools
 
@@ -62,7 +62,7 @@
 - Suitable for MCP client integration
 
 ### HTTP Transports
-- **Streamable HTTP**: REST-like interface with sessions
+- **Streamable HTTP**: REST-like interface with sessions (default transport)
 - **Server-Sent Events (SSE)**: Real-time event streaming
 - Session-based request correlation
 
@@ -101,6 +101,6 @@
 
 ### HTTP Server
 - Production-ready HTTP server
-- Configurable host/port
-- Multiple transport options
+- Configurable host/port via `-H`/`-p` flags (default :8080)
+- Multiple transport options (`-t` flag: stdio/http/sse)
 - Session management for stateful operations

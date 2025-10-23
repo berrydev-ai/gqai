@@ -3,12 +3,12 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/fotoetienne/gqai/mcp"
 	"log"
 	"os"
 
-	"github.com/fotoetienne/gqai/graphql"
-	"github.com/fotoetienne/gqai/tool"
+	"github.com/berrydev-ai/gqai/graphql"
+	"github.com/berrydev-ai/gqai/server"
+	"github.com/berrydev-ai/gqai/tool"
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +26,14 @@ var runCmd = &cobra.Command{
 	Use:   "run",
 	Short: "Run gqai as an MCP server in stdin/stdout mode",
 	Run: func(cmd *cobra.Command, args []string) {
-		mcp.RunMCPStdIO(config)
+		s, err := server.SetupMCPServer(config)
+		if err != nil {
+			log.Fatalf("Failed to setup MCP server: %v", err)
+		}
+
+		if err := server.StartServer(s, "stdio", ""); err != nil {
+			log.Fatalf("Server error: %v", err)
+		}
 	},
 }
 
@@ -47,24 +54,20 @@ var toolsCallCmd = &cobra.Command{
 			input = map[string]any{} // default to empty input
 		}
 
-		var request = mcp.JSONRPCRequest{
-			JSONRPC: "2.0",
-			Method:  "tools/call",
-			Params: map[string]any{
-				"name":      toolName,
-				"arguments": input,
-			},
-		}
-
-		var resp = mcp.ToolsCall(request, config)
-
-		var error = resp.Error
-		if error != nil {
-			fmt.Printf("Error: %s\n", error.Message)
+		// Load tool directly for CLI usage
+		tool, err := tool.LoadTool(config, toolName)
+		if err != nil {
+			fmt.Printf("Error loading tool: %v\n", err)
 			os.Exit(1)
 		}
 
-		var result = resp.Result
+		// Execute the tool
+		result, err := tool.Execute(input)
+		if err != nil {
+			fmt.Printf("Error executing tool: %v\n", err)
+			os.Exit(1)
+		}
+
 		out, _ := json.MarshalIndent(result, "", "  ")
 		fmt.Println(string(out))
 	},
@@ -119,26 +122,15 @@ var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Serve MCP server over HTTP with configurable transport",
 	Run: func(cmd *cobra.Command, args []string) {
+		s, err := server.SetupMCPServer(config)
+		if err != nil {
+			log.Fatalf("Failed to setup MCP server: %v", err)
+		}
+
 		addr := fmt.Sprintf("%s:%d", host, port)
 
-		switch transport {
-		case "sse":
-			fmt.Printf("Starting MCP SSE server on %s\n", addr)
-			server := &mcp.SSEServer{
-				Config:  config,
-				Clients: make(map[string]*mcp.SSEClient),
-			}
-			server.RunMCPSSE(addr)
-		case "http", "":
-			fmt.Printf("Starting MCP HTTP server on %s\n", addr)
-			server := &mcp.StreamableHTTPServer{
-				Config:   config,
-				Sessions: make(map[string]*mcp.StreamableHTTPSession),
-			}
-			server.RunMCPStreamableHTTP(addr)
-		default:
-			fmt.Printf("Invalid transport: %s. Use 'sse' or 'http'\n", transport)
-			os.Exit(1)
+		if err := server.StartServer(s, transport, addr); err != nil {
+			log.Fatalf("Server error: %v", err)
 		}
 	},
 }

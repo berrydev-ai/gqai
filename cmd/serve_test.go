@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fotoetienne/gqai/graphql"
+	"github.com/berrydev-ai/gqai/graphql"
 	"github.com/gorilla/mux"
 )
 

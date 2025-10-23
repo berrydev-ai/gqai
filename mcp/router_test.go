@@ -3,7 +3,7 @@ package mcp
 import (
 	"testing"
 
-	"github.com/fotoetienne/gqai/graphql"
+	"github.com/berrydev-ai/gqai/graphql"
 )
 
 func TestRouteMCPRequest(t *testing.T) {

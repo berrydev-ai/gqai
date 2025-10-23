@@ -12,7 +12,8 @@ gqai is a Go-based MCP server that bridges GraphQL APIs to AI models through the
 
 **Key Components**:
 - Command definitions for `run`, `serve`, `tools/call`, `tools/list`, `describe`
-- Transport selection (stdio, SSE, HTTP)
+- Transport selection (stdio, SSE, HTTP) via `-t` flag
+- Host/port configuration via `-H`/`-p` flags (default :8080)
 - Configuration loading and initialization
 
 ### graphql/
@@ -44,6 +45,8 @@ gqai is a Go-based MCP server that bridges GraphQL APIs to AI models through the
 - Multiple transport layers (stdio, SSE, HTTP)
 - Session management for HTTP transports
 - Error handling and response formatting
+- SSE server implementation for real-time communication
+- Streamable HTTP server with session-based request correlation
 
 ### tool/
 **Purpose**: Tool definition and schema generation
@@ -81,7 +84,7 @@ gqai is a Go-based MCP server that bridges GraphQL APIs to AI models through the
 ### HTTP Transport
 - Streamable HTTP with session management
 - REST-like interface with session headers
-- Uses `serve --transport http` command
+- Uses `serve --transport http` command (default)
 
 ## Configuration Structure
 
