@@ -158,15 +158,17 @@ To use gqai with Claude Desktop, you need to add the following configuration to 
 }
 ```
 
-##### SSE Transport
-For SSE transport, use the `run-sse` command:
+##### HTTP Transport (SSE or HTTP)
+Use the `serve` command with the `--transport` flag to choose between SSE and HTTP transports:
 
 ```json
 {
   "gqai-sse": {
     "command": "gqai",
     "args": [
-      "run-sse",
+      "serve",
+      "--transport",
+      "sse",
       "--config",
       ".graphqlrc.yml",
       "--host",
@@ -178,15 +180,14 @@ For SSE transport, use the `run-sse` command:
 }
 ```
 
-##### Streamable HTTP Transport
-For streamable HTTP transport, use the `run-streamable-http` command:
-
 ```json
 {
   "gqai-http": {
     "command": "gqai",
     "args": [
-      "run-streamable-http",
+      "serve",
+      "--transport",
+      "http",
       "--config",
       ".graphqlrc.yml",
       "--host",
@@ -293,14 +294,13 @@ go fmt ./...
 ./gqai run --config .graphqlrc.yml
 ```
 
-### Run MCP server with SSE transport
+### Run MCP server over HTTP
 ```bash
-./gqai run-sse --config .graphqlrc.yml --host localhost --port 8080
-```
+# Streamable HTTP transport (default)
+./gqai serve --config .graphqlrc.yml --host localhost --port 8080
 
-### Run MCP server with streamable HTTP transport
-```bash
-./gqai run-streamable-http --config .graphqlrc.yml --host localhost --port 8080
+# SSE transport
+./gqai serve --transport sse --config .graphqlrc.yml --host localhost --port 8080
 ```
 
 ### Run CLI
@@ -318,4 +318,4 @@ gqai makes it easy to turn your GraphQL backend into a model-ready tool layer �
 MIT — fork it, build on it, all the things.
 
 ### 👋 Author
-Made with ❤️ and 🤖vibes by Stephen Spalding && `<your-name-here>`
+Made with ❤️ and 🤖vibes by Stephen Spalding, Eric Berry, && `<your-name-here>`
