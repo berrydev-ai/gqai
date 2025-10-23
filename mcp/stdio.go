@@ -2,7 +2,7 @@ package mcp
 
 import (
 	"encoding/json"
-	"github.com/fotoetienne/gqai/graphql"
+	"github.com/berrydev-ai/gqai/graphql"
 	"log"
 	"os"
 )

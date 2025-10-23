@@ -3,14 +3,12 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/fotoetienne/gqai/mcp"
-	"github.com/gorilla/mux"
 	"log"
-	"net/http"
 	"os"
 
-	"github.com/fotoetienne/gqai/graphql"
-	"github.com/fotoetienne/gqai/tool"
+	"github.com/berrydev-ai/gqai/graphql"
+	"github.com/berrydev-ai/gqai/server"
+	"github.com/berrydev-ai/gqai/tool"
 	"github.com/spf13/cobra"
 )
 
@@ -28,27 +26,17 @@ var runCmd = &cobra.Command{
 	Use:   "run",
 	Short: "Run gqai as an MCP server in stdin/stdout mode",
 	Run: func(cmd *cobra.Command, args []string) {
-		mcp.RunMCPStdIO(config)
+		s, err := server.SetupMCPServer(config)
+		if err != nil {
+			log.Fatalf("Failed to setup MCP server: %v", err)
+		}
+
+		if err := server.StartServer(s, "stdio", ""); err != nil {
+			log.Fatalf("Server error: %v", err)
+		}
 	},
 }
 
-var runSSECmd = &cobra.Command{
-	Use:   "run-sse",
-	Short: "Run gqai as an MCP server with SSE transport",
-	Run: func(cmd *cobra.Command, args []string) {
-		addr := fmt.Sprintf("%s:%d", host, port)
-		mcp.RunMCPSSE(config, addr)
-	},
-}
-
-var runStreamableHTTPCmd = &cobra.Command{
-	Use:   "run-streamable-http",
-	Short: "Run gqai as an MCP server with streamable HTTP transport",
-	Run: func(cmd *cobra.Command, args []string) {
-		addr := fmt.Sprintf("%s:%d", host, port)
-		mcp.RunMCPStreamableHTTP(config, addr)
-	},
-}
 
 var toolsCallCmd = &cobra.Command{
 	Use:   "tools/call [toolName] [jsonInput]",
@@ -66,24 +54,20 @@ var toolsCallCmd = &cobra.Command{
 			input = map[string]any{} // default to empty input
 		}
 
-		var request = mcp.JSONRPCRequest{
-			JSONRPC: "2.0",
-			Method:  "tools/call",
-			Params: map[string]any{
-				"name":      toolName,
-				"arguments": input,
-			},
-		}
-
-		var resp = mcp.ToolsCall(request, config)
-
-		var error = resp.Error
-		if error != nil {
-			fmt.Printf("Error: %s\n", error.Message)
+		// Load tool directly for CLI usage
+		tool, err := tool.LoadTool(config, toolName)
+		if err != nil {
+			fmt.Printf("Error loading tool: %v\n", err)
 			os.Exit(1)
 		}
 
-		var result = resp.Result
+		// Execute the tool
+		result, err := tool.Execute(input)
+		if err != nil {
+			fmt.Printf("Error executing tool: %v\n", err)
+			os.Exit(1)
+		}
+
 		out, _ := json.MarshalIndent(result, "", "  ")
 		fmt.Println(string(out))
 	},
@@ -132,24 +116,22 @@ var describeCmd = &cobra.Command{
 	},
 }
 
+var transport string
+
 var serveCmd = &cobra.Command{
 	Use:   "serve",
-	Short: "Serve tools over HTTP",
+	Short: "Serve MCP server over HTTP with configurable transport",
 	Run: func(cmd *cobra.Command, args []string) {
-		r := mux.NewRouter()
-
-		// List tools
-		r.HandleFunc("/tools/list", listToolsHandler).Methods("GET")
-
-		// Call a tool
-		r.HandleFunc("/tools/call", callToolHandler).Methods("POST")
-
-		// Tool specific handler
-		r.HandleFunc("/tools/{toolName}", serveHandler).Methods("POST")
+		s, err := server.SetupMCPServer(config)
+		if err != nil {
+			log.Fatalf("Failed to setup MCP server: %v", err)
+		}
 
 		addr := fmt.Sprintf("%s:%d", host, port)
-		fmt.Printf("Serving on http://%s\n", addr)
-		log.Fatal(http.ListenAndServe(addr, r))
+
+		if err := server.StartServer(s, transport, addr); err != nil {
+			log.Fatalf("Server error: %v", err)
+		}
 	},
 }
 
@@ -157,6 +139,8 @@ func Execute() {
 	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", ".graphqlrc.yml", "Path to .graphqlrc.yml")
 	rootCmd.PersistentFlags().StringVarP(&host, "host", "H", "localhost", "Host to bind to")
 	rootCmd.PersistentFlags().IntVarP(&port, "port", "p", 8080, "Port to bind to")
+
+	serveCmd.Flags().StringVarP(&transport, "transport", "t", "http", "Transport type: 'sse' or 'http'")
 
 	cobra.OnInitialize(func() {
 		var err error
@@ -167,8 +151,6 @@ func Execute() {
 	})
 
 	rootCmd.AddCommand(runCmd)
-	rootCmd.AddCommand(runSSECmd)
-	rootCmd.AddCommand(runStreamableHTTPCmd)
 	rootCmd.AddCommand(toolsCallCmd)
 	rootCmd.AddCommand(toolsListCmd)
 	rootCmd.AddCommand(describeCmd)

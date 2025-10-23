@@ -2,7 +2,7 @@ package tool
 
 import (
 	"fmt"
-	"github.com/fotoetienne/gqai/graphql"
+	"github.com/berrydev-ai/gqai/graphql"
 )
 
 func ToolsFromConfig(config *graphql.GraphQLConfig) ([]*MCPTool, error) {

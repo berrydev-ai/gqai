@@ -1,6 +1,6 @@
 package main
 
-import "github.com/fotoetienne/gqai/cmd"
+import "github.com/berrydev-ai/gqai/cmd"
 
 func main() {
 	cmd.Execute()

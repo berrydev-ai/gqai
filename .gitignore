@@ -21,8 +21,33 @@
 go.work
 go.work.sum
 
+# Go cache
+.gomodcache
+
 # env file
 .env
 
 # IDE files
 .idea/
+
+# dist directory
+dist/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Binary build
+gqai
+
+# Kilo Code rules
+.kilocode/rules/using-references.md
+.kilocode/rules/memory-bank/context.md
+!.kilocode/rules/memory-bank/architecture.md
+!.kilocode/rules/memory-bank/brief.md
+!.kilocode/rules/memory-bank/product.md
+!.kilocode/rules/memory-bank/memory-bank-instructions.md
+!.kilocode/rules/memory-bank/tech.md
+
+# Reference docs and code
+reference/

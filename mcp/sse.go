@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/fotoetienne/gqai/graphql"
+	"github.com/berrydev-ai/gqai/graphql"
 )
 
 // SSEServer represents an SSE server instance
@@ -131,11 +131,9 @@ func (s *SSEServer) HandleMessage(w http.ResponseWriter, r *http.Request) {
 }
 
 // RunMCPSSE starts the MCP server with SSE transport
-func RunMCPSSE(config *graphql.GraphQLConfig, addr string) {
-	server := NewSSEServer(config)
-
-	http.HandleFunc("/sse", server.HandleSSE)
-	http.HandleFunc("/message", server.HandleMessage)
+func (s *SSEServer) RunMCPSSE(addr string) {
+	http.HandleFunc("/sse", s.HandleSSE)
+	http.HandleFunc("/message", s.HandleMessage)
 
 	log.Printf("Starting MCP SSE server on %s", addr)
 	log.Printf("SSE endpoint: http://%s/sse", addr)

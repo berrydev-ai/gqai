@@ -336,17 +336,17 @@ documents:
 }
 
 func TestLoadGraphQLConfigWithEnvVarsEverywhere(t *testing.T) {
-	os.Setenv("TEST_SCHEMA_URL", "http://localhost:4000/graphql")
-	os.Setenv("TEST_DOC_PATH", "operations/**/*.graphql")
-	os.Setenv("TEST_INCLUDE", "operations/include.graphql")
-	os.Setenv("TEST_EXCLUDE", "operations/exclude.graphql")
-	os.Setenv("TEST_HEADER", "header-value")
+	os.Setenv("test_schema_url", "http://localhost:4000/graphql")
+	os.Setenv("test_doc_path", "operations/**/*.graphql")
+	os.Setenv("test_include", "operations/include.graphql")
+	os.Setenv("test_exclude", "operations/exclude.graphql")
+	os.Setenv("test_header", "header-value")
 	t.Cleanup(func() {
-		os.Unsetenv("TEST_SCHEMA_URL")
-		os.Unsetenv("TEST_DOC_PATH")
-		os.Unsetenv("TEST_INCLUDE")
-		os.Unsetenv("TEST_EXCLUDE")
-		os.Unsetenv("TEST_HEADER")
+		os.Unsetenv("test_schema_url")
+		os.Unsetenv("test_doc_path")
+		os.Unsetenv("test_include")
+		os.Unsetenv("test_exclude")
+		os.Unsetenv("test_header")
 	})
 
 	tempDir := t.TempDir()
@@ -354,13 +354,13 @@ func TestLoadGraphQLConfigWithEnvVarsEverywhere(t *testing.T) {
 
 	configContent := `
 schema:
-  - ${TEST_SCHEMA_URL}:
+  - ${test_schema_url}:
       headers:
-        X-Test-Header: ${TEST_HEADER}
+        X-Test-Header: ${test_header}
 documents:
-  - ${TEST_DOC_PATH}
-include: ${TEST_INCLUDE}
-exclude: ${TEST_EXCLUDE}
+  - ${test_doc_path}
+include: ${test_include}
+exclude: ${test_exclude}
 `
 	err := os.WriteFile(configPath, []byte(configContent), 0644)
 	if err != nil {
