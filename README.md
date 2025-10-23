@@ -3,12 +3,12 @@
 
 **gqai** is a lightweight proxy that exposes GraphQL operations as
 [Model Context Protocol (MCP)](https://platform.openai.com/docs/guides/function-calling) tools for AI like
-Claude, Cursor, and ChatGPT.  
+Claude, Cursor, and ChatGPT.
 Define tools using regular GraphQL queries/mutations against your GraphQL backend, and gqai automatically
 generates an MCP server for you.
 
-🔌 Powered by your GraphQL backend  
-⚙️ Driven by `.graphqlrc.yml` + plain `.graphql` files  
+🔌 Powered by your GraphQL backend
+⚙️ Driven by `.graphqlrc.yml` + plain `.graphql` files
 
 ---
 
@@ -17,6 +17,8 @@ generates an MCP server for you.
 - 🧰 Define tools using GraphQL operations
 - 🗂 Automatically discover operations from `.graphqlrc.yml`
 - 🧾 Tool metadata compatible with OpenAI function calling / MCP
+- 🌐 Multiple transport options: stdio, SSE, and streamable HTTP
+- ⚙️ Configurable host and port for HTTP transports
 
 ---
 
@@ -156,6 +158,46 @@ To use gqai with Claude Desktop, you need to add the following configuration to 
 }
 ```
 
+##### SSE Transport
+For SSE transport, use the `run-sse` command:
+
+```json
+{
+  "gqai-sse": {
+    "command": "gqai",
+    "args": [
+      "run-sse",
+      "--config",
+      ".graphqlrc.yml",
+      "--host",
+      "localhost",
+      "--port",
+      "8080"
+    ]
+  }
+}
+```
+
+##### Streamable HTTP Transport
+For streamable HTTP transport, use the `run-streamable-http` command:
+
+```json
+{
+  "gqai-http": {
+    "command": "gqai",
+    "args": [
+      "run-streamable-http",
+      "--config",
+      ".graphqlrc.yml",
+      "--host",
+      "localhost",
+      "--port",
+      "8080"
+    ]
+  }
+}
+```
+
 
 ### 🧪 CLI Testing
 #### Call a tool via CLI to test:
@@ -249,6 +291,16 @@ go fmt ./...
 ### Run MCP server
 ```bash
 ./gqai run --config .graphqlrc.yml
+```
+
+### Run MCP server with SSE transport
+```bash
+./gqai run-sse --config .graphqlrc.yml --host localhost --port 8080
+```
+
+### Run MCP server with streamable HTTP transport
+```bash
+./gqai run-streamable-http --config .graphqlrc.yml --host localhost --port 8080
 ```
 
 ### Run CLI

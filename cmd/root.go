@@ -16,6 +16,8 @@ import (
 
 var config *graphql.GraphQLConfig
 var configPath string
+var host string
+var port int
 
 var rootCmd = &cobra.Command{
 	Use:   "gqai",
@@ -27,6 +29,24 @@ var runCmd = &cobra.Command{
 	Short: "Run gqai as an MCP server in stdin/stdout mode",
 	Run: func(cmd *cobra.Command, args []string) {
 		mcp.RunMCPStdIO(config)
+	},
+}
+
+var runSSECmd = &cobra.Command{
+	Use:   "run-sse",
+	Short: "Run gqai as an MCP server with SSE transport",
+	Run: func(cmd *cobra.Command, args []string) {
+		addr := fmt.Sprintf("%s:%d", host, port)
+		mcp.RunMCPSSE(config, addr)
+	},
+}
+
+var runStreamableHTTPCmd = &cobra.Command{
+	Use:   "run-streamable-http",
+	Short: "Run gqai as an MCP server with streamable HTTP transport",
+	Run: func(cmd *cobra.Command, args []string) {
+		addr := fmt.Sprintf("%s:%d", host, port)
+		mcp.RunMCPStreamableHTTP(config, addr)
 	},
 }
 
@@ -127,13 +147,16 @@ var serveCmd = &cobra.Command{
 		// Tool specific handler
 		r.HandleFunc("/tools/{toolName}", serveHandler).Methods("POST")
 
-		fmt.Println("Serving on http://localhost:8080")
-		log.Fatal(http.ListenAndServe("localhost:8080", r))
+		addr := fmt.Sprintf("%s:%d", host, port)
+		fmt.Printf("Serving on http://%s\n", addr)
+		log.Fatal(http.ListenAndServe(addr, r))
 	},
 }
 
 func Execute() {
 	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", ".graphqlrc.yml", "Path to .graphqlrc.yml")
+	rootCmd.PersistentFlags().StringVarP(&host, "host", "H", "localhost", "Host to bind to")
+	rootCmd.PersistentFlags().IntVarP(&port, "port", "p", 8080, "Port to bind to")
 
 	cobra.OnInitialize(func() {
 		var err error
@@ -144,6 +167,8 @@ func Execute() {
 	})
 
 	rootCmd.AddCommand(runCmd)
+	rootCmd.AddCommand(runSSECmd)
+	rootCmd.AddCommand(runStreamableHTTPCmd)
 	rootCmd.AddCommand(toolsCallCmd)
 	rootCmd.AddCommand(toolsListCmd)
 	rootCmd.AddCommand(describeCmd)
